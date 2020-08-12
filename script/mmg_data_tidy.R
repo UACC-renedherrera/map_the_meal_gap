@@ -4,23 +4,25 @@ library(tidyverse)
 library(readxl)
 library(tidycensus)
 
-# load variables of US Census ACS5 into environment
-acs5_2018 <- load_variables(2018, "acs5", cache = TRUE)
+# load variables of US Census acs1 into environment
+acs1_2018 <- load_variables(2018, "acs1", cache = TRUE)
 
 # display total population of USA 
 us_population_total <- get_acs(geography = "us",
                                variables = c("us_estimate" = "B01003_001"),
                                year = 2018,
-                               survey = "acs5")
+                               survey = "acs1")
 
 # display total population of AZ 
 az_population_total <- get_acs(geography = "state",
                                state = "az",
                                variables = c("us_estimate" = "B01003_001"),
                                year = 2018,
-                               survey = "acs5")
+                               survey = "acs1")
 
 # display total population of UAZCC catchment 
+# acs five year estimate because 
+# The one-year ACS provides data for geographies with populations of 65,000 and greater.
 catch_population_total <- get_acs(geography = "county",
                                   state = "az",
                                   variables = c("us_estimate" = "B01003_001"),
@@ -56,6 +58,7 @@ mmg2020_state <- read_xlsx("data/raw/MMG2020_2018Data_ToShare.xlsx",
                             trim_ws = TRUE,
                             skip = 1)
 
+# display column names
 names(mmg2020_state)
 
 # food insecurity rate usa ----
