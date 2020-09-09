@@ -142,3 +142,113 @@ food_insec_catch <- full_join(mmg2020_county_totals, catch_population_totals)
 
 food_insec_catch %>%
   mutate(prop = estimate / total)
+
+# updated data 
+# data import 
+# state data for the map the meal gap ----
+mmg2020_state_updated <- read_xlsx("data/raw/MMG2020_2018Data_ToShare_Updated.xlsx",
+                           sheet = "2018 State",
+                           range = "A2:R53",
+                           col_names = TRUE,
+                           na = "",
+                           trim_ws = TRUE,
+                           skip = 1
+)
+
+str(mmg2020_state_updated)
+
+# filter to AZ only
+mmg2020_state_updated <- mmg2020_state_updated %>%
+  filter(State == "AZ") %>%
+  select(`State Name`,
+    `2018 Food Insecurity Rate`)
+
+mmg2020_state_updated
+
+# county data for the map the meal gap ----
+mmg2020_county_updated <- read_xlsx("data/raw/MMG2020_2018Data_ToShare_Updated.xlsx",
+                            sheet = "2018 County",
+                            range = "A2:R3144",
+                            col_names = TRUE,
+                            na = "",
+                            trim_ws = TRUE,
+                            skip = 1
+)
+
+# filter to AZ only
+mmg2020_county_updated <- mmg2020_county_updated %>%
+  filter(State == "AZ")
+
+# use stringr to clean up county name
+mmg2020_county_updated <- mmg2020_county_updated %>%
+  mutate(`County, State` = str_replace(mmg2020_county_updated$`County, State`, " County, Arizona", ""))
+
+# catchment food insecurity rate ---- 
+mmg2020_county_updated %>%
+  filter(`County, State` %in% counties) %>%
+  select(
+    State,
+    `County, State`,
+    "# of Food Insecure Persons in 2018"
+  ) %>%
+  summarise(food_insecure = sum(`# of Food Insecure Persons in 2018`)) %>%
+  mutate(total = catch_population_total$estimate) %>%
+  mutate(prop = food_insecure / total)
+
+# county level insecurity rate ---- 
+mmg2020_county_updated_totals <- mmg2020_county_updated %>%
+  filter(`County, State` %in% counties) %>%
+  select(
+    State,
+    `County, State`,
+    "# of Food Insecure Persons in 2018"
+  ) %>%
+  select(NAME = "County, State",
+         estimate = "# of Food Insecure Persons in 2018")
+
+catch_population_totals <- catch_population %>%
+  mutate(NAME = str_replace(catch_population$NAME, " County, Arizona", "")) %>%
+  filter(NAME %in% counties) %>%
+  select(NAME, total = estimate)
+
+food_insec_catch <- full_join(mmg2020_county_updated_totals, catch_population_totals)
+
+food_insec_catch %>%
+  mutate(prop = estimate / total)
+
+# use stringr to clean up county name
+mmg2020_state_updated <- mmg2020_state_updated %>%
+  mutate(`County, State` = str_replace(mmg2020_state_updated$`County, State`, " County, Arizona", ""))
+
+# catchment food insecurity rate ---- 
+mmg2020_state_updated %>%
+  filter(`County, State` %in% counties) %>%
+  select(
+    State,
+    `County, State`,
+    "# of Food Insecure Persons in 2018"
+  ) %>%
+  summarise(food_insecure = sum(`# of Food Insecure Persons in 2018`)) %>%
+  mutate(total = catch_population_total$estimate) %>%
+  mutate(prop = food_insecure / total)
+
+# county level insecurity rate ---- 
+mmg2020_state_updated_totals <- mmg2020_state_updated %>%
+  filter(`County, State` %in% counties) %>%
+  select(
+    State,
+    `County, State`,
+    "# of Food Insecure Persons in 2018"
+  ) %>%
+  select(NAME = "County, State",
+         estimate = "# of Food Insecure Persons in 2018")
+
+catch_population_totals <- catch_population %>%
+  mutate(NAME = str_replace(catch_population$NAME, " County, Arizona", "")) %>%
+  filter(NAME %in% counties) %>%
+  select(NAME, total = estimate)
+
+food_insec_catch <- full_join(mmg2020_state_updated_totals, catch_population_totals)
+
+food_insec_catch %>%
+  mutate(prop = estimate / total)
