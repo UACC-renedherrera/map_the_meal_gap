@@ -182,7 +182,9 @@ food_insecurity <- food_insecurity %>%
          total,
          prop)
 
+# print food insecurity for all areas
 food_insecurity
 
+# save 
 write_rds(food_insecurity,
           "data/tidy/food_insecurity.rds")
