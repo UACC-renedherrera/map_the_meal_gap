@@ -1,9 +1,13 @@
 # set up ----
 # load packages
-library(here) 
+library(here)
 library(tidyverse)
 library(readxl)
 library(tidycensus)
+
+#sources
+# Gunderson, Craig, et al. Map the Meal Gap 2020: A Report on County and Congressional District Food Insecurity and County Food Cost in the United States in 2018. Feeding America, 2020.
+# U.S. Census Bureau, 2014-2018 American Community Survey 5-Year Estimates
 
 # load variables of US Census acs1 into environment
 acs1_2018 <- load_variables(2018, "acs1", cache = TRUE)
@@ -52,11 +56,13 @@ population_az_counties <- population_az_counties %>%
   mutate(NAME = str_replace(population_az_counties$NAME, " County, Arizona", ""))
 
 # combine all population into one dataframe
-population_tbl <- bind_rows(population_us, 
-          population_az, 
-          population_az_counties)
+population_tbl <- bind_rows(
+  population_us,
+  population_az,
+  population_az_counties
+)
 
-# population estimates for each area 
+# population estimates for each area
 population_tbl
 
 # total population
@@ -68,11 +74,13 @@ population_catchment <- population_az_counties %>%
 # total population in catchment
 population_catchment
 
-population_tbl <- bind_rows(population_tbl,
-          population_catchment)
+population_tbl <- bind_rows(
+  population_tbl,
+  population_catchment
+)
 
-# data import 
-# food insecurity 
+# data import
+# food insecurity
 # state data for the map the meal gap ----
 mmg2020_state <- read_xlsx("data/raw/MMG2020_2018Data_ToShare.xlsx",
   sheet = "2018 State",
@@ -89,18 +97,23 @@ glimpse(mmg2020_state)
 names(mmg2020_state)
 
 # food insecurity rate usa ----
-food_insecure_us <-  mmg2020_state %>%
+food_insecure_us <- mmg2020_state %>%
   select(
     `State Name`,
     "# of Food Insecure Persons in 2018"
   ) %>%
   summarise(food_insecure = sum(`# of Food Insecure Persons in 2018`)) %>%
   mutate(total = population_us$estimate) %>%
-  mutate(prop = food_insecure / total,
-         NAME = "United States")
+  mutate(
+    prop = food_insecure / total,
+    NAME = "United States"
+  )
 
 # calculated food insecurity rate usa
 food_insecure_us
+
+# save for processing later
+write_rds(mmg2020_state, "data/tidy/food_insecure_usa_states.rds")
 
 # food insecurity rate az ----
 food_insecure_az <- mmg2020_state %>%
@@ -111,8 +124,10 @@ food_insecure_az <- mmg2020_state %>%
   ) %>%
   summarise(food_insecure = sum(`# of Food Insecure Persons in 2018`)) %>%
   mutate(total = population_az$estimate) %>%
-  mutate(prop = food_insecure / total,
-         NAME = "Arizona")
+  mutate(
+    prop = food_insecure / total,
+    NAME = "Arizona"
+  )
 
 # calculated food insecurity rate az
 food_insecure_az
@@ -127,6 +142,9 @@ mmg2020_county <- read_xlsx("data/raw/MMG2020_2018Data_ToShare.xlsx",
   skip = 1
 )
 
+# save for processing later
+write_rds(mmg2020_county, "data/tidy/food_insecure_usa_counties.rds")
+
 glimpse(mmg2020_county)
 
 # filter to AZ only
@@ -137,12 +155,15 @@ mmg2020_county <- mmg2020_county %>%
 mmg2020_county <- mmg2020_county %>%
   mutate(`County, State` = str_replace(mmg2020_county$`County, State`, " County, Arizona", ""))
 
+# save for processing later
+write_rds(mmg2020_county, "data/tidy/food_insecure_az_counties.rds")
+
 # food insecurity az counties
 food_insecure_az_counties <- mmg2020_county %>%
   select(
     State,
     NAME = `County, State`,
-    food_insecure= "# of Food Insecure Persons in 2018"
+    food_insecure = "# of Food Insecure Persons in 2018"
   ) %>%
   mutate(total = population_az_counties$estimate) %>%
   mutate(prop = food_insecure / total) %>%
@@ -151,7 +172,7 @@ food_insecure_az_counties <- mmg2020_county %>%
 # food insecurity shown for all az counties
 food_insecure_az_counties
 
-# catchment food insecurity rate ---- 
+# catchment food insecurity rate ----
 food_insecure_catch <- mmg2020_county %>%
   filter(`County, State` %in% counties) %>%
   select(
@@ -161,8 +182,10 @@ food_insecure_catch <- mmg2020_county %>%
   ) %>%
   summarise(food_insecure = sum(`# of Food Insecure Persons in 2018`)) %>%
   mutate(total = population_catchment$estimate) %>%
-  mutate(prop = food_insecure / total,
-         NAME = "Catchment") 
+  mutate(
+    prop = food_insecure / total,
+    NAME = "Catchment"
+  )
 
 # food insecurity for catchment altogether
 food_insecure_catch
@@ -177,14 +200,18 @@ food_insecurity <- bind_rows(
 
 # food insecurity shown for all areas
 food_insecurity <- food_insecurity %>%
-  select(NAME,
-         food_insecure,
-         total,
-         prop)
+  select(
+    NAME,
+    food_insecure,
+    total,
+    prop
+  )
 
 # print food insecurity for all areas
 food_insecurity
 
-# save 
-write_rds(food_insecurity,
-          "data/tidy/food_insecurity.rds")
+# save
+write_rds(
+  food_insecurity,
+  "data/tidy/food_insecurity.rds"
+)
