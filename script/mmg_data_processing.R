@@ -14,6 +14,8 @@ food_insecure_counties <- read_rds("data/tidy/food_insecure_usa_counties.rds")
 # data provided by MMG for states in USA
 food_insecure_states <- read_rds("data/tidy/food_insecure_usa_states.rds")
 
+glimpse(food_insecure_states)
+
 # plot of food insecurity for AZ counties, in comparison to USA, AZ, and catchment
 food_insecurity_table %>%
   ggplot(mapping = aes(x = reorder(NAME, prop), y = prop)) +
@@ -53,7 +55,7 @@ food_insecure_az_counties %>%
        x = "",
        caption = "Sources: Map the Meal Gap 2020")
 
-# proportion of children living in food insecure households
+# child food insecurity rate
 food_insecure_az_counties %>% 
   ggplot(mapping = aes(x = reorder(`County, State`, `2018 Child food insecurity rate`), y = `2018 Child food insecurity rate`)) +
   geom_bar(stat = "identity", fill = "#0C234B") +
@@ -61,7 +63,7 @@ food_insecure_az_counties %>%
   theme_clean() +
   ylim(0, .5) +
   geom_text(aes(label = round(`2018 Child food insecurity rate`, digits = 3), hjust = -.25))  +
-  labs(title = "% of Children Living in Food Insecure Households in Arizona",
+  labs(title = "Child Food Insecurity Rate",
        subtitle = "Proportion of children living in food insecure households \nfor Arizona counties in 2018",
        y = "Proportion",
        x = "",
@@ -72,4 +74,41 @@ food_insecure_az_counties %>%
   ggplot(mapping = aes(y = `2018 Food Insecurity Rate`, x = `2018 Cost Per Meal`)) +
   geom_point() +
   geom_text(aes(label = `County, State`)) +
-  theme_clean() 
+  theme_bw()
+
+
+# state comparisons
+# proportion of food insecure above poverty threshold 
+food_insecure_states %>% 
+  ggplot(mapping = aes(x = reorder(`State Name`, `% FI > High Threshold`), y = `% FI > High Threshold`)) +
+  geom_bar(stat = "identity", fill = "#0C234B") +
+  coord_flip() +
+  theme_clean() +
+  ylim(0, .75) +
+  geom_text(aes(label = round(`% FI > High Threshold`, digits = 3), hjust = -.25))  +
+  labs(title = "% of Food Insecure > Threshold in USA",
+       subtitle = "Proportion of food insecure households above poverty \nthreshold for USA states in 2018",
+       y = "Proportion",
+       x = "",
+       caption = "Sources: Map the Meal Gap 2020")
+
+# child food insecurity rate
+food_insecure_states %>% 
+  ggplot(mapping = aes(x = reorder(`State Name`, `2018 Child Food Insecurity Rate`), y = `2018 Child Food Insecurity Rate`)) +
+  geom_bar(stat = "identity", fill = "#0C234B") +
+  coord_flip() +
+  theme_clean() +
+  ylim(0, .5) +
+  geom_text(aes(label = round(`2018 Child Food Insecurity Rate`, digits = 3), hjust = -.25))  +
+  labs(title = "Child Food Insecurity Rate",
+       subtitle = "Proportion of children living in food insecure households \nfor Arizona counties in 2018",
+       y = "Proportion",
+       x = "",
+       caption = "Sources: Map the Meal Gap 2020")
+
+# food insecurity rate by cost per meal 
+food_insecure_states %>% 
+  ggplot(mapping = aes(y = `2018 Food Insecurity Rate`, x = `2018 Cost Per Meal`)) +
+  geom_point() +
+  geom_text(aes(label = `State Name`)) +
+  theme_bw()
